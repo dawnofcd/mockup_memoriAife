@@ -1,0 +1,230 @@
+/* ─────────────────────────────────────────────────────────────
+   FillClaude — shared design tokens & base
+   Warm editorial palette (terracotta + cream) over NextGen
+   design language (sticker shadows, mono eyebrows, accent dot)
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Tokens · Light (default · "Warm Paper") ──────────────── */
+:root, [data-theme="light"] {
+  --bg:        #FAF9F5;
+  --bg-2:      #FFFFFF;
+  --bg-3:      #F4F1EB;
+  --bg-4:      #EBE7DD;
+  --bg-hover:  #F0EBE0;
+
+  --ink:       #1A1A1A;
+  --ink-2:     #4A4542;
+  --ink-3:     #8A8580;
+  --ink-4:     #B5AFA6;
+
+  --rule:      #E5E0D8;
+  --rule-2:    #CFC8BC;
+
+  --accent:    #D97757;
+  --accent-2:  #C4643E;
+  --accent-ink:#FFFFFF;
+
+  --green:     #2D7D46;
+  --hot:       #C93535;
+  --cy:        #2A6FB5;
+  --pur:       #7B5CCB;
+  --yel:       #B07408;
+
+  --shadow-stick:    4px 4px 0 0 #1A1A1A;
+  --shadow-stick-sm: 2px 2px 0 0 #1A1A1A;
+  --shadow-stick-lg: 6px 6px 0 0 #1A1A1A;
+
+  --font-sans:  'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+  --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  color-scheme: light;
+}
+
+/* ── Tokens · Dark ("Espresso") ──────────────────────────── */
+[data-theme="dark"] {
+  --bg:        #15120F;
+  --bg-2:      #1E1A16;
+  --bg-3:      #26211D;
+  --bg-4:      #2F2924;
+  --bg-hover:  #2A2521;
+
+  --ink:       #F4F1EB;
+  --ink-2:     #C8C0B3;
+  --ink-3:     #8A8174;
+  --ink-4:     #58524A;
+
+  --rule:      #2C2722;
+  --rule-2:    #443D36;
+
+  --accent:    #E8956F;
+  --accent-2:  #D97757;
+  --accent-ink:#15120F;
+
+  --green:     #5AB870;
+  --hot:       #E66A6A;
+  --cy:        #6BA8E5;
+  --pur:       #B594F4;
+  --yel:       #E5B142;
+
+  --shadow-stick:    4px 4px 0 0 #000;
+  --shadow-stick-sm: 2px 2px 0 0 #000;
+  --shadow-stick-lg: 6px 6px 0 0 #000;
+
+  color-scheme: dark;
+}
+
+/* ── Reset & base ─────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body { overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* ── Container ────────────────────────────────────────────── */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+.container-narrow { max-width: 980px; margin: 0 auto; padding: 0 32px; }
+
+/* ── Typography primitives ────────────────────────────────── */
+.eyebrow {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
+}
+.eyebrow .accent { color: var(--accent); }
+.mono { font-family: var(--font-mono); }
+.serif { font-family: var(--font-serif); }
+
+.h-display {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(46px, 5.8vw, 78px);
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+}
+.h-section {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(34px, 4vw, 48px);
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+}
+.h-card {
+  font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2;
+}
+.lede {
+  font-size: 18px; color: var(--ink-2); line-height: 1.55; max-width: 640px;
+  font-weight: 400;
+}
+.lede strong { color: var(--ink); font-weight: 600; }
+.small { font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+
+/* ── Sticker primitives ──────────────────────────────────── */
+.sticker {
+  border: 1.5px solid var(--ink);
+  box-shadow: var(--shadow-stick);
+  border-radius: 8px;
+  transition: transform 120ms, box-shadow 120ms;
+}
+.sticker-sm { border: 1.5px solid var(--ink); box-shadow: var(--shadow-stick-sm); border-radius: 6px; }
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 16px;
+  font-size: 13px; font-weight: 600; font-family: var(--font-sans);
+  border-radius: 6px;
+  transition: transform 100ms, box-shadow 100ms, border-color 120ms, background 120ms;
+  white-space: nowrap;
+}
+.btn-lg { height: 48px; padding: 0 20px; font-size: 14px; border-radius: 7px; }
+.btn-primary {
+  background: var(--accent); color: var(--accent-ink);
+  border: 1.5px solid var(--ink);
+  box-shadow: var(--shadow-stick-sm);
+}
+.btn-primary:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 0 var(--ink); }
+.btn-secondary {
+  background: var(--bg-2); color: var(--ink);
+  border: 1.5px solid var(--rule-2);
+}
+.btn-secondary:hover { border-color: var(--ink); }
+.btn-ghost { color: var(--ink-2); }
+.btn-ghost:hover { color: var(--ink); background: var(--bg-3); }
+.btn .arrow { font-family: var(--font-mono); font-weight: 700; }
+.btn .kbd {
+  padding: 1px 6px; border-radius: 3px;
+  background: rgba(0,0,0,0.18);
+  font-family: var(--font-mono); font-size: 11px; opacity: 0.85;
+}
+[data-theme="dark"] .btn .kbd { background: rgba(255,255,255,0.15); }
+.btn-primary .kbd { background: rgba(0,0,0,0.25); }
+[data-theme="dark"] .btn-primary .kbd { background: rgba(0,0,0,0.30); }
+
+/* ── Pills · chips · tags ─────────────────────────────────── */
+.pill-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 100px;
+  background: var(--bg-2); border: 1px solid var(--rule-2);
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-2);
+}
+.pill-tag .d { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+
+/* ── Common card ─────────────────────────────────────────── */
+.card {
+  background: var(--bg-2); border: 1px solid var(--rule); border-radius: 8px;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.card-h {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
+}
+.card-h .accent-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.card-h .title { color: var(--ink-2); }
+.card-h .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.card-h .pill {
+  padding: 2px 7px; border-radius: 100px; background: var(--bg-3);
+  border: 1px solid var(--rule-2); color: var(--ink-2);
+  text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 10.5px;
+}
+.card-h .more { color: var(--ink-3); cursor: pointer; }
+.card-h .more:hover { color: var(--ink); }
+.card-b { padding: 14px; flex: 1; }
+.card-b.flush { padding: 0; }
+
+/* ── Shared topbar toggles (lang + theme) ────────────────── */
+.float-controls {
+  position: fixed; right: 20px; bottom: 20px; z-index: 60;
+  display: flex; gap: 8px; align-items: center;
+}
+.ctrl-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; height: 36px;
+  background: var(--bg-2); color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: 100px;
+  box-shadow: var(--shadow-stick-sm);
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+  transition: transform 100ms, box-shadow 100ms;
+}
+.ctrl-pill:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 0 var(--ink); }
+.ctrl-pill .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--ink); }
+[data-theme="dark"] .ctrl-pill .dot { background: var(--bg); border-color: var(--ink); }
+
+/* ── i18n: hide opposite-locale strings ──────────────────── */
+/* !important so per-component `display: flex/grid/...` rules
+   in landing/dashboard inline styles don't accidentally re-show
+   the opposite-locale string. */
+[data-lang="en"] [data-vi] { display: none !important; }
+[data-lang="vi"] [data-en] { display: none !important; }
+
+/* small inline helper for "stack" of cards */
+.stack { display: flex; flex-direction: column; gap: 12px; }
