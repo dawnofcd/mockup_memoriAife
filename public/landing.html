@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="vi" data-lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<title>MemorIAI — Claude API thanh toán VNĐ, hỗ trợ tiếng Việt</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
+
+<link rel="stylesheet" href="theme.css" />
+
+<style>
+  /* ───────────────────── Announcement bar ───────────────────── */
+  .announce {
+    background: var(--bg-2); border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);
+  }
+  .announce-inner { display: flex; align-items: center; gap: 16px; height: 36px; }
+  .announce .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px; border-radius: 3px;
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px;
+  }
+  .announce a { color: var(--ink); border-bottom: 1px solid transparent; transition: border-color 120ms; }
+  .announce a:hover { border-bottom-color: var(--accent); }
+  .announce .spacer { flex: 1; }
+  .announce .right { display: flex; align-items: center; gap: 12px; color: var(--ink-3); }
+  .announce .right .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  /* ───────────────────── Nav ───────────────────── */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in oklab, var(--bg) 82%, transparent);
+    backdrop-filter: blur(12px) saturate(170%);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 28px; height: 64px; }
+  .logo-lockup { display: inline-flex; align-items: center; gap: 10px; }
+  .logo-lockup .mark { width: 30px; height: 30px; flex-shrink: 0; }
+  .logo-lockup .word {
+    font-family: var(--font-serif);
+    font-size: 22px; letter-spacing: -0.02em;
+    color: var(--ink); display: inline-flex; align-items: baseline;
+    font-weight: 500;
+  }
+  .logo-lockup .word .lead { font-weight: 500; }
+  .logo-lockup .word .tail { font-weight: 400; opacity: 0.55; }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { font-size: 13.5px; color: var(--ink-2); font-weight: 500; transition: color 120ms; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links .has-chev::after { content: " ▾"; font-size: 9px; color: var(--ink-3); margin-left: 2px; }
+  .nav-spacer { flex: 1; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+
+  /* ───────────────────── Hero ───────────────────── */
+  .hero { padding: 88px 0 96px; position: relative; overflow: hidden; }
+  .hero-grid-bg {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(var(--rule) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+    background-size: 56px 56px;
+    opacity: 0.55;
+    mask-image: radial-gradient(ellipse 80% 60% at 60% 30%, #000 30%, transparent 85%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 60% 30%, #000 30%, transparent 85%);
+  }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 64px; align-items: center; position: relative; z-index: 1; }
+  @media (max-width: 1020px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 6px 6px 6px 12px; border-radius: 100px;
+    background: var(--bg-2); border: 1px solid var(--rule-2);
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-2);
+    margin-bottom: 28px;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hero-pill .pill-tag-inline {
+    padding: 3px 9px; border-radius: 100px; background: var(--bg-3);
+    color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px;
+  }
+  .hero-pill .pill-arr { color: var(--ink-3); }
+
+  .hero h1 { margin-bottom: 24px; }
+  .hero h1 .accent { color: var(--accent); font-style: italic; font-weight: 400; }
+  .hero h1 .stack-line { display: block; }
+  .hero p.lede { margin-bottom: 36px; }
+
+  .hero-ctas { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 40px; }
+
+  .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--rule); padding-top: 28px; max-width: 580px; }
+  .hero-stats .stat { padding-right: 16px; border-right: 1px solid var(--rule); }
+  .hero-stats .stat:last-child { border-right: none; padding-left: 24px; padding-right: 0; }
+  .hero-stats .stat:nth-child(2) { padding-left: 24px; }
+  .hero-stats .num { font-family: var(--font-serif); font-size: 30px; font-weight: 400; letter-spacing: -0.02em; color: var(--ink); }
+  .hero-stats .num .accent { color: var(--accent); }
+  .hero-stats .lab { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 6px; }
+
+  /* ── Code preview panel (right of hero) ────────────── */
+  .panel-shadow { position: relative; padding: 0; }
+  .panel-shadow::before {
+    content: ""; position: absolute; inset: 26px -28px -22px 22px;
+    background: var(--accent); border-radius: 12px; z-index: 0;
+    opacity: 0.18; transform: rotate(1.4deg);
+  }
+  .panel {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 540px; margin-left: auto;
+    background: var(--bg-2); color: var(--ink);
+    border: 1.5px solid var(--ink); border-radius: 10px;
+    box-shadow: var(--shadow-stick-lg);
+    overflow: hidden;
+    font-family: var(--font-sans);
+  }
+  .pcode .body { color: var(--ink); white-space: pre; overflow-x: auto; }
+  .pheader {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+  .pheader .lights { display: flex; gap: 6px; }
+  .pheader .lights span { width: 10px; height: 10px; border-radius: 50%; background: var(--rule-2); border: 1px solid var(--rule); }
+  .pheader .path {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    padding: 3px 8px; background: var(--bg-3); border: 1px solid var(--rule); border-radius: 4px;
+    margin-left: 4px;
+  }
+  .pheader .path .accent { color: var(--accent); font-weight: 600; }
+  .pheader .right { margin-left: auto; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); }
+  .pheader .right .gdot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  .pcode {
+    padding: 16px 0; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65;
+    background: var(--bg-2); color: var(--ink);
+  }
+  .pcode .ln { display: grid; grid-template-columns: 36px 1fr; }
+  .pcode .gut { color: var(--ink-4); text-align: right; padding-right: 14px; user-select: none; }
+  .pcode .body { color: var(--ink); white-space: pre; overflow-x: auto; }
+  .tok-com { color: var(--ink-3); font-style: italic; }
+  .tok-kw  { color: var(--pur); }
+  .tok-str { color: var(--green); }
+  .tok-fn  { color: var(--cy); }
+  .tok-var { color: var(--accent); }
+  .tok-num { color: var(--yel); }
+
+  .pfoot {
+    border-top: 1px solid var(--rule);
+    padding: 9px 14px;
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3);
+    background: var(--bg-3);
+  }
+  .pfoot .resp-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 7px; background: var(--bg-2); border: 1px solid var(--rule);
+    border-radius: 100px;
+  }
+  .pfoot .resp-chip .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .pfoot .spacer { flex: 1; }
+  .pfoot .right { color: var(--ink-2); }
+
+  /* ───────────────────── Trust bar ───────────────────── */
+  .trust { padding: 48px 0 56px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--bg-2); }
+  .trust-label { text-align: center; margin-bottom: 28px; }
+  .trust-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; align-items: center; }
+  @media (max-width: 880px) { .trust-grid { grid-template-columns: repeat(3, 1fr); } }
+  .trust-logo {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    color: var(--ink-2); height: 40px; font-weight: 600; letter-spacing: -0.01em;
+    opacity: 0.78; transition: opacity 150ms, color 150ms;
+  }
+  .trust-logo:hover { opacity: 1; color: var(--ink); }
+  .trust-logo .glyph {
+    width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0;
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    background: var(--bg-4); color: var(--ink); border: 1px solid var(--rule-2);
+  }
+  .trust-logo .name { font-size: 15px; }
+
+  /* ───────────────────── Section head ───────────────────── */
+  .section { padding: 100px 0; position: relative; }
+  .section-head { max-width: 760px; margin-bottom: 56px; }
+  .section-head.centered { margin: 0 auto 56px; text-align: center; }
+  .section-head h2 { margin: 14px 0 18px; }
+  .section-head.centered .lede { margin-left: auto; margin-right: auto; }
+
+  /* ───────────────────── Models pricing ───────────────────── */
+  .pricing-bar {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .pricing-bar .seg {
+    display: inline-flex; background: var(--bg-2); border: 1px solid var(--rule-2); border-radius: 100px;
+    padding: 3px; gap: 0;
+  }
+  .pricing-bar .seg button {
+    padding: 6px 14px; font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--ink-3); border-radius: 100px;
+    font-weight: 600; letter-spacing: 0.06em;
+    transition: background 100ms, color 100ms;
+  }
+  .pricing-bar .seg button.active { background: var(--ink); color: var(--bg); }
+  .pricing-bar .seg button:hover:not(.active) { color: var(--ink); }
+  .pricing-bar .note { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+  .pricing-bar .note .accent { color: var(--accent); font-weight: 600; }
+
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 980px) { .price-grid { grid-template-columns: 1fr; } }
+
+  .price {
+    background: var(--bg-2); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 28px 26px 26px;
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: border-color 150ms, transform 150ms;
+  }
+  .price:hover { border-color: var(--rule-2); transform: translateY(-2px); }
+  .price.featured {
+    border: 1.5px solid var(--ink); box-shadow: var(--shadow-stick);
+    background: var(--bg-2);
+  }
+  .price.featured:hover { transform: translate(-1px, -3px); box-shadow: var(--shadow-stick-lg); }
+  .price .tag-feat {
+    position: absolute; top: -10px; left: 22px;
+    padding: 3px 10px; border-radius: 100px;
+    background: var(--accent); color: var(--accent-ink);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+    border: 1.5px solid var(--ink);
+  }
+
+  .price .name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .price .model-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .price.opus .model-dot   { background: var(--pur); }
+  .price.sonnet .model-dot { background: var(--accent); }
+  .price.haiku .model-dot  { background: var(--green); }
+  .price .name {
+    font-family: var(--font-mono); font-size: 11.5px;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); font-weight: 600;
+  }
+  .price .display-name {
+    font-family: var(--font-serif); font-size: 32px; font-weight: 400;
+    letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 6px;
+  }
+  .price .one-liner { color: var(--ink-2); font-size: 13.5px; line-height: 1.5; min-height: 60px; margin-bottom: 24px; }
+
+  .price-rows {
+    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    padding: 14px 0; margin-bottom: 22px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .price-row { display: flex; align-items: baseline; gap: 8px; }
+  .price-row .lab {
+    font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--ink-3); letter-spacing: 0.12em; text-transform: uppercase;
+    flex: 1;
+  }
+  .price-row .val {
+    font-family: var(--font-mono); font-size: 15px;
+    color: var(--ink); font-weight: 600;
+  }
+  .price-row .val .unit { font-size: 11px; font-weight: 500; color: var(--ink-3); margin-left: 3px; }
+
+  .price ul.feat-list { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 24px; flex: 1; }
+  .price ul.feat-list li { display: flex; gap: 9px; font-size: 13.5px; color: var(--ink); line-height: 1.45; }
+  .price ul.feat-list li::before {
+    content: "→"; color: var(--accent); font-family: var(--font-mono); font-weight: 700; flex-shrink: 0;
+  }
+  .price .btn { justify-content: center; width: 100%; }
+
+  /* ───────────────────── Quickstart ───────────────────── */
+  .qs-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: center; }
+  @media (max-width: 980px) { .qs-grid { grid-template-columns: 1fr; gap: 32px; } }
+  .qs-text h3 { font-family: var(--font-serif); font-weight: 400; font-size: 32px; letter-spacing: -0.022em; line-height: 1.12; margin-bottom: 14px; }
+  .qs-text p { color: var(--ink-2); font-size: 15.5px; line-height: 1.6; margin-bottom: 18px; max-width: 480px; }
+  .qs-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+  .qs-step { display: flex; gap: 14px; align-items: flex-start; }
+  .qs-step .num {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border-radius: 6px; border: 1.5px solid var(--ink);
+    box-shadow: var(--shadow-stick-sm);
+    background: var(--bg-2);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    color: var(--accent);
+  }
+  .qs-step .body { padding-top: 3px; }
+  .qs-step .ttl { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .qs-step .sub { font-size: 13px; color: var(--ink-3); margin-top: 2px; }
+  .qs-step .sub code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); background: var(--bg-3); padding: 1px 5px; border-radius: 3px; }
+
+  .qs-code-card {
+    background: var(--bg-2); border: 1.5px solid var(--ink);
+    box-shadow: var(--shadow-stick);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .qs-code-card .tabs {
+    display: flex; padding: 0 12px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-3);
+  }
+  .qs-code-card .tab {
+    padding: 11px 14px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-3);
+    border-bottom: 1.5px solid transparent;
+    cursor: pointer;
+    transition: color 120ms, border-color 120ms;
+  }
+  .qs-code-card .tab:hover { color: var(--ink); }
+  .qs-code-card .tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .qs-code-card .tab-right { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+  .qs-copy {
+    padding: 3px 8px; font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--ink-3); background: var(--bg-2);
+    border: 1px solid var(--rule-2); border-radius: 4px;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .qs-copy:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ───────────────────── Features grid ───────────────────── */
+  .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 880px) { .feat-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 580px) { .feat-grid { grid-template-columns: 1fr; } }
+  .feat {
+    padding: 24px 24px 26px; background: var(--bg-2); border: 1px solid var(--rule); border-radius: 10px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 120ms, transform 120ms;
+  }
+  .feat:hover { border-color: var(--rule-2); transform: translateY(-2px); }
+  .feat .ico {
+    width: 38px; height: 38px; border-radius: 7px;
+    border: 1.5px solid var(--ink); box-shadow: var(--shadow-stick-sm);
+    background: var(--bg); display: grid; place-items: center;
+    margin-bottom: 6px;
+  }
+  .feat .ico svg { width: 18px; height: 18px; color: var(--accent); }
+  .feat h4 { font-size: 16.5px; font-weight: 600; letter-spacing: -0.015em; }
+  .feat p { color: var(--ink-2); font-size: 13.5px; line-height: 1.55; }
+  .feat .tag {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .feat .tag .accent { color: var(--accent); }
+
+  /* ───────────────────── CTA strip ───────────────────── */
+  .cta {
+    margin: 80px 0 24px; padding: 56px 48px;
+    background: var(--accent); color: var(--accent-ink);
+    border: 1.5px solid var(--ink); border-radius: 14px;
+    box-shadow: var(--shadow-stick-lg);
+    display: grid; grid-template-columns: minmax(0, 1.3fr) auto; gap: 40px; align-items: center;
+  }
+  @media (max-width: 880px) { .cta { grid-template-columns: 1fr; padding: 40px 32px; } }
+  .cta h2 {
+    font-family: var(--font-serif); font-size: clamp(30px, 4vw, 42px);
+    font-weight: 400; letter-spacing: -0.025em; line-height: 1.06; margin-bottom: 14px;
+  }
+  .cta p { font-size: 15px; opacity: 0.82; max-width: 540px; line-height: 1.55; }
+  .cta .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta .btn-primary { background: var(--accent-ink); color: var(--accent); border-color: var(--accent-ink); box-shadow: none; }
+  .cta .btn-primary:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 0 rgba(0,0,0,0.45); }
+  .cta .btn-secondary { background: transparent; color: var(--accent-ink); border-color: var(--accent-ink); }
+  .cta .btn-secondary:hover { background: rgba(0,0,0,0.08); border-color: var(--accent-ink); }
+
+  /* ───────────────────── Footer ───────────────────── */
+  .footer { border-top: 1px solid var(--rule); padding: 60px 0 40px; background: var(--bg); }
+  .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+  @media (max-width: 880px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+  .foot-col h5 { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); margin-bottom: 14px; font-weight: 600; }
+  .foot-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .foot-col a { font-size: 13.5px; color: var(--ink-2); transition: color 120ms; }
+  .foot-col a:hover { color: var(--ink); }
+  .foot-brand p { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin-top: 14px; max-width: 320px; }
+  .foot-bottom {
+    display: flex; justify-content: space-between; gap: 16px; align-items: center;
+    padding-top: 28px; border-top: 1px solid var(--rule);
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3);
+    flex-wrap: wrap;
+  }
+  .foot-bottom .links { display: flex; gap: 18px; }
+  .foot-bottom .links a:hover { color: var(--ink); }
+
+  /* ───────────────────── Scroll Reveal ───────────────────── */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-child { opacity: 0; transform: translateY(18px); transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.visible .reveal-child { opacity: 1; transform: none; }
+
+  /* ───────────────────── Typing effect ───────────────────── */
+  .typewriter .ln .body { visibility: hidden; }
+  .typewriter.typing .ln .body { visibility: visible; }
+  .typewriter.typed .ln .body { visibility: visible; }
+  .type-cursor {
+    display: inline-block; width: 7px; height: 15px;
+    background: var(--accent); vertical-align: -2px; margin-left: 1px;
+    animation: blink-cursor 1s steps(2) infinite;
+  }
+  @keyframes blink-cursor { 50% { opacity: 0; } }
+
+  /* ───────────────────── Mobile Nav ───────────────────── */
+  .nav-hamburger {
+    display: none; width: 36px; height: 36px; border-radius: 6px;
+    align-items: center; justify-content: center; cursor: pointer;
+    background: none; border: 1px solid var(--rule-2);
+  }
+  .nav-hamburger span {
+    display: block; width: 18px; height: 2px; background: var(--ink);
+    position: relative; transition: transform 0.2s;
+  }
+  .nav-hamburger span::before, .nav-hamburger span::after {
+    content: ""; position: absolute; left: 0; width: 100%; height: 2px; background: var(--ink);
+  }
+  .nav-hamburger span::before { top: -6px; }
+  .nav-hamburger span::after { top: 6px; }
+
+  /* ───────────────────── Tablet landscape (769-1024px) ───────────────────── */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .container { padding: 0 24px; }
+    .hero { padding: 64px 0 72px; }
+    .hero-grid { gap: 40px; }
+    .panel { max-width: 440px; }
+    .section { padding: 72px 0; }
+    .price { padding: 24px 22px 22px; }
+    .feat { padding: 20px 20px 22px; }
+    .cta { padding: 44px 36px; }
+    .trust-logo .name { font-size: 13px; }
+    .qs-grid { gap: 36px; }
+    .pcode { font-size: 11.5px; }
+  }
+
+  /* ───────────────────── Responsive ≤768px ───────────────────── */
+  @media (max-width: 768px) {
+    .container { padding: 0 16px; }
+    .announce-inner { font-size: 10px; gap: 8px; }
+    .announce .right { display: none; }
+    .nav-hamburger { display: flex; }
+    .nav-links { display: none; }
+    .nav-right { gap: 6px; }
+    .nav-right .btn { padding: 7px 12px; font-size: 12px; white-space: nowrap; }
+    .hero { padding: 48px 0 56px; }
+    .hero-pill { font-size: 10px; padding: 5px 5px 5px 10px; flex-wrap: wrap; }
+    .h-display { font-size: clamp(32px, 8vw, 46px); }
+    .hero-ctas { flex-direction: column; align-items: stretch; }
+    .hero-ctas .btn { justify-content: center; }
+    .panel { max-width: 100%; box-shadow: var(--shadow-stick-sm); }
+    .panel-shadow { padding: 0; }
+    .pcode { font-size: 11.5px; }
+    .pcode .ln { grid-template-columns: 28px 1fr; }
+    .pcode .gut { padding-right: 8px; }
+    .pheader .path { font-size: 9.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+    .pheader .right { display: none; }
+    .hero-stats { grid-template-columns: 1fr; gap: 16px; padding-top: 20px; }
+    .hero-stats .stat { border-right: none; padding: 0; border-bottom: 1px solid var(--rule); padding-bottom: 12px; }
+    .hero-stats .stat:last-child { border-bottom: none; padding-left: 0; }
+    .hero-stats .stat:nth-child(2) { padding-left: 0; }
+    .panel-shadow::before { display: none; }
+    .panel { max-width: 100%; }
+    .section { padding: 56px 0; }
+    .section-head h2 { font-size: clamp(24px, 6vw, 34px); }
+    .trust-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .trust-logo .name { font-size: 12px; }
+    .price-grid { gap: 14px; }
+    .price { padding: 22px 20px 20px; }
+    .feat-grid { gap: 12px; }
+    .feat { padding: 18px 18px 20px; }
+    .qs-grid { gap: 24px; }
+    .cta { padding: 32px 20px; gap: 24px; }
+    .foot-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
+
+  @media (max-width: 480px) {
+    .trust-grid { grid-template-columns: repeat(2, 1fr); }
+    .foot-grid { grid-template-columns: 1fr; }
+    .hero-stats .num { font-size: 24px; }
+    .container { padding: 0 12px; }
+    .nav-inner { gap: 12px; height: 56px; }
+    .nav-right .btn { padding: 6px 10px; font-size: 11px; }
+    .hero { padding: 36px 0 44px; }
+    .hero-pill { font-size: 9px; gap: 6px; }
+    .h-display { font-size: clamp(28px, 9vw, 38px); }
+    .lede { font-size: 13.5px; }
+    .section { padding: 40px 0; }
+    .section-head { margin-bottom: 32px; }
+    .section-head h2 { font-size: clamp(22px, 5.5vw, 30px); }
+    .price { padding: 18px 16px 18px; }
+    .price .display-name { font-size: 26px; }
+    .price .one-liner { font-size: 12.5px; min-height: 48px; margin-bottom: 16px; }
+    .price-row .lab { font-size: 9.5px; }
+    .price-row .val { font-size: 13px; }
+    .feat { padding: 16px 14px 18px; }
+    .feat h4 { font-size: 14.5px; }
+    .feat p { font-size: 12.5px; }
+    .feat .ico { width: 32px; height: 32px; }
+    .feat .ico svg { width: 15px; height: 15px; }
+    .qs-text h3 { font-size: 24px; }
+    .qs-text p { font-size: 13.5px; }
+    .qs-step .ttl { font-size: 13px; }
+    .qs-step .sub { font-size: 12px; }
+    .qs-step .num { width: 24px; height: 24px; font-size: 11px; }
+    .pcode { font-size: 11px; line-height: 1.55; }
+    .pcode .gut { width: 28px; padding-right: 10px; }
+    .cta { padding: 28px 16px; border-radius: 10px; }
+    .cta h2 { font-size: clamp(22px, 5vw, 30px); }
+    .cta p { font-size: 13px; }
+    .cta .btn { padding: 10px 16px; font-size: 13px; }
+    .trust { padding: 32px 0 36px; }
+    .trust-logo { height: 32px; }
+    .trust-logo .glyph { width: 18px; height: 18px; font-size: 9px; }
+    .trust-logo .name { font-size: 11px; }
+    .foot-bottom { font-size: 10px; }
+    .foot-bottom .links { gap: 12px; }
+    .announce { display: none; }
+  }
+
+  /* ───────────────────── Phone small (≤375px) ───────────────────── */
+  @media (max-width: 375px) {
+    .container { padding: 0 10px; }
+    .nav-inner { height: 50px; gap: 8px; }
+    .logo-lockup .mark { width: 24px; height: 24px; }
+    .logo-lockup .word { font-size: 18px; }
+    .nav-right .btn { padding: 5px 8px; font-size: 10.5px; }
+    .hero { padding: 28px 0 36px; }
+    .h-display { font-size: clamp(24px, 9vw, 32px); }
+    .hero-pill { display: none; }
+    .hero-ctas .btn { padding: 10px 14px; font-size: 13px; }
+    .hero-stats .num { font-size: 22px; }
+    .hero-stats .lab { font-size: 9.5px; }
+    .section { padding: 32px 0; }
+    .price-grid { gap: 12px; }
+    .price { padding: 16px 14px 16px; }
+    .price .display-name { font-size: 22px; }
+    .price .one-liner { font-size: 12px; min-height: 40px; margin-bottom: 14px; }
+    .feat-grid { gap: 10px; }
+    .feat { padding: 14px 12px 16px; }
+    .feat h4 { font-size: 13.5px; }
+    .feat p { font-size: 12px; }
+    .qs-text h3 { font-size: 20px; }
+    .pcode { font-size: 10.5px; }
+    .pcode .gut { width: 24px; padding-right: 8px; font-size: 9px; }
+    .cta { padding: 24px 14px; }
+    .cta .actions { flex-direction: column; }
+    .cta .actions .btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+
+<body data-screen-label="01 Landing">
+
+<!-- ═════ Shared SVG symbols ═════ -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <!-- MemorIAI mark: abstract geometric M -->
+  <symbol id="fc-mark" viewBox="0 0 100 100">
+    <rect x="10" y="10" width="80" height="80" rx="16" fill="none" stroke="currentColor" stroke-width="5"/>
+    <path d="M28 72V36l22 22 22-22v36" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="50" cy="28" r="4" fill="var(--accent)"/>
+  </symbol>
+
+  <!-- feature icons -->
+  <symbol id="i-vnd" viewBox="0 0 24 24"><path d="M3 7l5 9 4-7 4 7 5-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5L16 9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-5 4v-4H4V5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-meter" viewBox="0 0 24 24"><path d="M3 17a9 9 0 0118 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 17l5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1.4" fill="currentColor"/></symbol>
+</svg>
+
+<!-- ═════ ANNOUNCEMENT BAR ═════ -->
+<div class="announce">
+  <div class="container announce-inner">
+    <span class="tag" data-vi>Mới</span>
+    <span class="tag" data-en>New</span>
+    <span data-vi>Claude Sonnet 4.6 &amp; Opus 4.7 đã có mặt — gateway VN, thanh toán VNĐ qua chuyển khoản</span>
+    <span data-en>Claude Sonnet 4.6 &amp; Opus 4.7 available — VN gateway, pay in VND via bank transfer</span>
+    <a href="#models" data-vi>Xem giá <span class="mono">↗</span></a>
+    <a href="#models" data-en>View pricing <span class="mono">↗</span></a>
+    <span class="spacer"></span>
+    <span class="right">
+      <span class="dot"></span>
+      <span data-vi>Hoạt động bình thường</span>
+      <span data-en>All systems normal</span>
+    </span>
+  </div>
+</div>
+
+<!-- ═════ NAV ═════ -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo-lockup">
+      <svg class="mark" style="color: var(--ink)"><use href="#fc-mark"/></svg>
+      <span class="word"><span class="lead">Memor</span><span class="tail">IAI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#models" data-vi>Mô hình</a><a href="#models" data-en>Models</a>
+      <a href="#features" data-vi>Tính năng</a><a href="#features" data-en>Features</a>
+      <a href="/docs" data-vi>Tài liệu</a><a href="/docs" data-en>Docs</a>
+      <a href="#" target="_blank" rel="noopener noreferrer" data-vi>Hỗ trợ</a><a href="#" target="_blank" rel="noopener noreferrer" data-en>Support</a>
+    </div>
+    <span class="nav-spacer"></span>
+    <button class="nav-hamburger" id="navHamburger"><span></span></button>
+    <div class="nav-right">
+      <a href="/buy" class="btn btn-primary" style="background:var(--hot);border-color:var(--hot)"><span data-vi>Mua key</span><span data-en>Buy key</span></a>
+      <a href="/my" class="btn btn-primary">
+        <span data-vi>Đăng nhập</span><span data-en>Sign in</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═════ HERO ═════ -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="container hero-grid">
+
+    <div>
+      <span class="hero-pill">
+        <span class="pill-tag-inline">v2 · LIVE</span>
+        <span data-vi>Cổng Claude API tại Việt Nam · thanh toán VNĐ · không cần thẻ quốc tế</span>
+        <span data-en>Claude API gateway in Vietnam · pay in VND · no foreign card needed</span>
+        <span class="pill-arr">→</span>
+      </span>
+
+      <h1 class="h-display" data-vi>
+        <span class="stack-line">Claude API,</span>
+        <span class="stack-line"><span class="accent">giá gốc</span>,</span>
+        <span class="stack-line">trả bằng VNĐ.</span>
+      </h1>
+      <h1 class="h-display" data-en>
+        <span class="stack-line">Claude API,</span>
+        <span class="stack-line">at <span class="accent">list price</span>,</span>
+        <span class="stack-line">paid in VND.</span>
+      </h1>
+
+      <p class="lede" data-vi>
+        <strong>MemorIAI</strong> là gateway cho Sonnet 4.6, Opus 4.6 và Opus 4.7 — <strong>giá theo OpenRouter</strong>, thanh toán bằng chuyển khoản, hỗ trợ 24/7. Không markup, không cần thẻ quốc tế, không VPN.
+      </p>
+      <p class="lede" data-en>
+        <strong>MemorIAI</strong> is a gateway to Sonnet 4.6, Opus 4.6 and Opus 4.7 — <strong>at OpenRouter pricing</strong>, payable via bank transfer, with 24/7 support. No markup. No foreign card. No VPN.
+      </p>
+
+      <div class="hero-ctas">
+        <a href="/my" class="btn btn-primary btn-lg">
+          <span data-vi>Nhận $5 dùng thử</span><span data-en>Get $5 free credit</span>
+          <span class="arrow">→</span>
+        </a>
+        <a href="#quickstart" class="btn btn-secondary btn-lg">
+          <span class="arrow">↓</span>
+          <span data-vi>Xem mã ví dụ</span><span data-en>See example code</span>
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="num"><span class="accent">2,400</span>+</div>
+          <div class="lab" data-vi>Đội kỹ thuật đang dùng</div>
+          <div class="lab" data-en>Eng teams shipping</div>
+        </div>
+        <div class="stat">
+          <div class="num">99.97<span class="accent">%</span></div>
+          <div class="lab" data-vi>Uptime 90 ngày</div>
+          <div class="lab" data-en>90-day uptime</div>
+        </div>
+        <div class="stat">
+          <div class="num">~<span class="accent">42</span>ms</div>
+          <div class="lab" data-vi>Độ trễ thêm (HCM)</div>
+          <div class="lab" data-en>Added latency (HCM)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code preview panel -->
+    <div class="panel-shadow">
+      <div class="panel">
+        <header class="pheader">
+          <span class="lights"><span></span><span></span><span></span></span>
+          <span class="path"><span class="accent">POST</span>&nbsp; api.example.com/v1/messages</span>
+          <span class="right">
+            <span class="gdot"></span>
+            <span>200 · 1.42s</span>
+          </span>
+        </header>
+
+        <div class="pcode typewriter" id="hero-code">
+          <div class="ln"><span class="gut">1</span><span class="body"><span class="tok-com"># gọi Claude qua MemorIAI — drop-in tương thích Anthropic SDK</span></span></div>
+          <div class="ln"><span class="gut">2</span><span class="body"><span class="tok-kw">import</span> anthropic</span></div>
+          <div class="ln"><span class="gut">3</span><span class="body"></span></div>
+          <div class="ln"><span class="gut">4</span><span class="body">client = anthropic.<span class="tok-fn">Anthropic</span>(</span></div>
+          <div class="ln"><span class="gut">5</span><span class="body">    base_url=<span class="tok-str">"https://api.example.com/v1"</span>,</span></div>
+          <div class="ln"><span class="gut">6</span><span class="body">    api_key=<span class="tok-var">"fc_live_…"</span>,</span></div>
+          <div class="ln"><span class="gut">7</span><span class="body">)</span></div>
+          <div class="ln"><span class="gut">8</span><span class="body"></span></div>
+          <div class="ln"><span class="gut">9</span><span class="body">msg = client.messages.<span class="tok-fn">create</span>(</span></div>
+          <div class="ln"><span class="gut">10</span><span class="body">    model=<span class="tok-str">"sonnet-4-6"</span>,</span></div>
+          <div class="ln"><span class="gut">11</span><span class="body">    max_tokens=<span class="tok-num">1024</span>,</span></div>
+          <div class="ln"><span class="gut">12</span><span class="body">    messages=[{</span></div>
+          <div class="ln"><span class="gut">13</span><span class="body">      <span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>,</span></div>
+          <div class="ln"><span class="gut">14</span><span class="body">      <span class="tok-str">"content"</span>: <span class="tok-str">"Tóm tắt báo cáo Q3…"</span></span></div>
+          <div class="ln"><span class="gut">15</span><span class="body">    }],</span></div>
+          <div class="ln"><span class="gut">16</span><span class="body">)</span></div>
+        </div>
+
+        <div class="pfoot">
+          <span class="resp-chip"><span class="d"></span> claude-sonnet-4-5</span>
+          <span>in <strong style="color: var(--ink)">1,284</strong> · out <strong style="color: var(--ink)">312</strong></span>
+          <span class="spacer"></span>
+          <span class="right" data-vi>chi phí · <strong>~ 168 ₫</strong></span>
+          <span class="right" data-en>cost · <strong>$ 0.0072</strong></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═════ TRUST BAR ═════ -->
+<section class="trust reveal">
+  <div class="container">
+    <div class="trust-label">
+      <span class="eyebrow" data-vi>Đang được dùng bởi các đội ngũ tại</span>
+      <span class="eyebrow" data-en>Powering teams at</span>
+    </div>
+    <div class="trust-grid">
+      <div class="trust-logo"><span class="glyph">◆</span><span class="name">Đông Hồ Lab</span></div>
+      <div class="trust-logo"><span class="glyph">▲</span><span class="name">SaigonStack</span></div>
+      <div class="trust-logo"><span class="glyph">◯</span><span class="name">Trầm Hương</span></div>
+      <div class="trust-logo"><span class="glyph">▮</span><span class="name">Halo Pay</span></div>
+      <div class="trust-logo"><span class="glyph">⌘</span><span class="name">Hà Nội AI</span></div>
+      <div class="trust-logo"><span class="glyph">⏣</span><span class="name">Mekong Data</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════ MODELS PRICING ═════ -->
+<section class="section reveal" id="models">
+  <div class="container">
+
+    <div class="section-head">
+      <span class="eyebrow"><span class="accent">/</span> <span data-vi>các mô hình</span><span data-en>the models</span></span>
+      <h2 class="h-section" data-vi>Nhiều mô hình AI.<br/>Một bảng giá, đã quy đổi VNĐ.</h2>
+      <h2 class="h-section" data-en>Multiple AI models.<br/>One price sheet, VND-ready.</h2>
+      <p class="lede" data-vi>Giá theo công bố chính thức, không markup.</p>
+      <p class="lede" data-en>Prices match published rates — no markup.</p>
+    </div>
+
+    <div class="pricing-bar">
+      <span class="note">
+        <span data-vi>Tỉ giá nạp credit · <span class="accent">$1 = <span id="rateVi">700</span>₫</span></span>
+        <span data-en>Credit top-up rate · <span class="accent">$1 = <span id="rateEn">700</span>₫</span></span>
+      </span>
+    </div>
+
+    <div class="price-grid">
+      <!-- SONNET 4.6 (featured) -->
+      <div class="price sonnet featured reveal-child" data-model-id="sonnet-4-6">
+        <div class="tag-feat" data-vi>Phổ biến nhất</div>
+        <div class="tag-feat" data-en>Most popular</div>
+        <div class="name-row">
+          <span class="model-dot"></span>
+          <span class="name">claude-sonnet-4.6</span>
+        </div>
+        <div class="display-name">Sonnet 4.6</div>
+        <p class="one-liner" data-vi>Cân bằng tốt nhất giữa chất lượng &amp; chi phí. Dùng cho agents, viết code, phân tích dữ liệu.</p>
+        <p class="one-liner" data-en>Best price/quality balance. For agents, coding, data analysis.</p>
+        <div class="price-rows">
+          <div class="price-row"><span class="lab">Input / 1M tok</span><span class="val" data-price="input">$3.00</span></div>
+          <div class="price-row"><span class="lab">Output / 1M tok</span><span class="val" data-price="output">$15.00</span></div>
+          <div class="price-row"><span class="lab">Cache Read</span><span class="val" data-price="cacheRead">$0.30</span></div>
+          <div class="price-row"><span class="lab">Cache Write</span><span class="val" data-price="cacheWrite">$3.75</span></div>
+        </div>
+        <a href="/buy" class="btn btn-primary btn-lg">
+          <span data-vi>Mua key</span><span data-en>Buy key</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+
+      <!-- OPUS 4.6 -->
+      <div class="price opus reveal-child" data-model-id="opus-4-6">
+        <div class="name-row">
+          <span class="model-dot"></span>
+          <span class="name">claude-opus-4.6</span>
+        </div>
+        <div class="display-name">Opus 4.6</div>
+        <p class="one-liner" data-vi>Mô hình mạnh, giá tốt. Dành cho agentic workflows, R&amp;D.</p>
+        <p class="one-liner" data-en>Powerful at great value. For agentic workflows, R&amp;D.</p>
+        <div class="price-rows">
+          <div class="price-row"><span class="lab">Input / 1M tok</span><span class="val" data-price="input">$5.00</span></div>
+          <div class="price-row"><span class="lab">Output / 1M tok</span><span class="val" data-price="output">$25.00</span></div>
+          <div class="price-row"><span class="lab">Cache Read</span><span class="val" data-price="cacheRead">$0.50</span></div>
+          <div class="price-row"><span class="lab">Cache Write</span><span class="val" data-price="cacheWrite">$6.25</span></div>
+        </div>
+        <a href="/buy" class="btn btn-secondary btn-lg">
+          <span data-vi>Mua key</span><span data-en>Buy key</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+
+      <!-- OPUS 4.7 -->
+      <div class="price opus reveal-child" data-model-id="opus-4-7">
+        <div class="name-row">
+          <span class="model-dot"></span>
+          <span class="name">claude-opus-4.7</span>
+        </div>
+        <div class="display-name">Opus 4.7</div>
+        <p class="one-liner" data-vi>Phiên bản mới nhất. Mạnh nhất cho complex reasoning.</p>
+        <p class="one-liner" data-en>Latest version. Strongest for complex reasoning.</p>
+        <div class="price-rows">
+          <div class="price-row"><span class="lab">Input / 1M tok</span><span class="val" data-price="input">$5.00</span></div>
+          <div class="price-row"><span class="lab">Output / 1M tok</span><span class="val" data-price="output">$25.00</span></div>
+          <div class="price-row"><span class="lab">Cache Read</span><span class="val" data-price="cacheRead">$0.50</span></div>
+          <div class="price-row"><span class="lab">Cache Write</span><span class="val" data-price="cacheWrite">$6.25</span></div>
+        </div>
+        <a href="/buy" class="btn btn-secondary btn-lg">
+          <span data-vi>Mua key</span><span data-en>Buy key</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:32px;">
+      <a href="/buy" class="btn btn-primary btn-lg">
+        <span data-vi>Mua key ngay</span><span data-en>Buy key now</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+
+    <!-- All models grouped by provider -->
+    <div id="models-section" style="margin-top:56px;">
+      <h3 style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:20px;text-align:center;">
+        <span data-vi>Tất cả mô hình khả dụng</span><span data-en>All available models</span>
+      </h3>
+      <div id="models-grid"></div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var colors = {claude:'var(--accent)',deepseek:'#4a9eff',gemini:'#fbbc04',glm:'#00c853',minimax:'#ff6d00',qwen:'#7c4dff',default:'var(--ink-3)'};
+  function getColor(name){
+    if(name.includes('opus'))return'var(--pur)';
+    if(name.includes('sonnet'))return'var(--accent)';
+    if(name.includes('haiku'))return'var(--green)';
+    if(name.includes('gpt')||name.includes('o1')||name.includes('o3'))return'#10a37f';
+    if(name.includes('deepseek'))return'#4a9eff';
+    if(name.includes('gemini')||name.includes('gemma'))return'#fbbc04';
+    if(name.includes('glm'))return'#00c853';
+    if(name.includes('minimax'))return'#ff6d00';
+    if(name.includes('qwen'))return'#7c4dff';
+    if(name.includes('grok'))return'#1da1f2';
+    if(name.includes('mistral'))return'#ff7000';
+    if(name.includes('llama'))return'#0668e1';
+    return'var(--ink-3)';
+  }
+  function getCategory(name){
+    if(name.includes('claude')||name.includes('opus')||name.includes('sonnet')||name.includes('haiku'))return'Claude';
+    if(name.includes('gpt')||name.includes('o1')||name.includes('o3')||name.includes('codex'))return'GPT';
+    if(name.includes('deepseek'))return'DeepSeek';
+    if(name.includes('gemini')||name.includes('gemma'))return'Gemini';
+    if(name.includes('glm'))return'GLM';
+    if(name.includes('minimax'))return'MiniMax';
+    if(name.includes('qwen'))return'Qwen';
+    if(name.includes('grok'))return'Grok';
+    if(name.includes('mistral'))return'Mistral';
+    if(name.includes('llama'))return'Llama';
+    return'Other';
+  }
+  fetch('/api/models').then(function(r){return r.json()}).then(function(d){
+    var grid=document.getElementById('models-grid');
+    if(!d.models||!d.models.length){grid.textContent='No models';grid.style.textAlign='center';grid.style.color='var(--ink-3)';return;}
+    function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function num(v){var n=Number(v);return isFinite(n)?n.toFixed(2):'0';}
+    var groups={};
+    d.models.forEach(function(m){var cat=getCategory(m.id);if(!groups[cat])groups[cat]=[];groups[cat].push(m);});
+    var html='';
+    Object.keys(groups).forEach(function(cat){
+      html+='<div style="margin-bottom:24px;">';
+      html+='<div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;padding-left:4px;">'+esc(cat)+'</div>';
+      html+='<div style="overflow-x:auto;border:1.5px solid var(--rule);border-radius:10px;background:var(--bg-2);">';
+      html+='<table style="width:100%;border-collapse:collapse;">';
+      groups[cat].forEach(function(m,i){
+        var border=i<groups[cat].length-1?'border-bottom:1px solid var(--rule);':'';
+        html+='<tr style="'+border+'transition:background 0.15s;" onmouseenter="this.style.background=\'var(--bg-3)\'" onmouseleave="this.style.background=\'transparent\'">';
+        html+='<td style="padding:9px 14px;display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:'+esc(getColor(m.id))+';flex-shrink:0;"></span><span style="font-family:var(--font-mono);font-size:12px;font-weight:500;">'+esc(m.name)+'</span></td>';
+        html+='<td style="text-align:right;padding:9px 14px;font-family:var(--font-mono);font-size:12px;color:var(--ink-2);">$'+num(m.inputPrice)+'<span style="color:var(--ink-3);font-size:10px;margin-left:2px;">/M in</span></td>';
+        html+='<td style="text-align:right;padding:9px 14px;font-family:var(--font-mono);font-size:12px;color:var(--ink-2);">$'+num(m.outputPrice)+'<span style="color:var(--ink-3);font-size:10px;margin-left:2px;">/M out</span></td>';
+        html+='<td style="text-align:right;padding:9px 14px;font-family:var(--font-mono);font-size:11px;color:var(--ink-3);">$'+num(m.cacheReadPrice)+'<span style="font-size:9px;margin-left:2px;">cache R</span></td>';
+        html+='<td style="text-align:right;padding:9px 14px;font-family:var(--font-mono);font-size:11px;color:var(--ink-3);">$'+num(m.cacheWritePrice)+'<span style="font-size:9px;margin-left:2px;">cache W</span></td>';
+        html+='</tr>';
+      });
+      html+='</table></div></div>';
+    });
+    grid.innerHTML=html;
+  }).catch(function(){});
+})();
+</script>
+
+<!-- ═════ COMPATIBLE TOOLS ═════ -->
+<section class="reveal" style="padding: 48px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--bg-2);">
+  <div class="container" style="text-align: center;">
+    <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 24px;">
+      <span data-vi>Tương thích với</span><span data-en>Compatible with</span>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap;">
+      <img src="/tools/claude.ico" alt="Claude Code" width="48" height="48" style="border-radius: 10px; border: 1px solid var(--rule);" title="Claude Code" />
+      <img src="/tools/cursor.ico" alt="Cursor" width="48" height="48" style="border-radius: 10px; border: 1px solid var(--rule);" title="Cursor" />
+      <img src="/tools/cline.png" alt="Cline" width="48" height="48" style="border-radius: 10px; border: 1px solid var(--rule);" title="Cline" />
+      <img src="/tools/kilo.ico" alt="Kilo" width="48" height="48" style="border-radius: 10px; border: 1px solid var(--rule);" title="Kilo" />
+      <img src="/tools/openclaw.svg" alt="OpenClaw" width="48" height="48" style="border-radius: 10px;" title="OpenClaw" />
+      <img src="/tools/hermes.ico" alt="Hermes" width="48" height="48" style="border-radius: 10px;" title="Hermes" />
+    </div>
+  </div>
+</section>
+
+<!-- ═════ FEATURES ═════ -->
+<section class="section reveal" id="features" style="padding-top: 32px;">
+  <div class="container">
+
+    <div class="section-head">
+      <span class="eyebrow"><span class="accent">/</span> <span data-vi>vì sao chọn memoriai</span><span data-en>why memoriai</span></span>
+      <h2 class="h-section" data-vi>Vẫn là Claude.<br/>Chỉ là dễ trả tiền hơn.</h2>
+      <h2 class="h-section" data-en>The same Claude.<br/>Easier to pay for.</h2>
+    </div>
+
+    <div class="feat-grid">
+
+      <div class="feat reveal-child">
+        <div class="ico"><svg><use href="#i-vnd"/></svg></div>
+        <span class="tag"><span class="accent">01</span> · <span data-vi>thanh toán</span><span data-en>payments</span></span>
+        <h4 data-vi>Chuyển khoản &amp; ví điện tử VN</h4>
+        <h4 data-en>Bank transfer &amp; VN e-wallets</h4>
+        <p data-vi>Vietcombank, Techcombank, MB, MoMo, ZaloPay. Nạp tối thiểu 100.000₫. Hóa đơn VAT điện tử tự động phát hành sau mỗi lần nạp.</p>
+        <p data-en>Vietcombank, Techcombank, MB, MoMo, ZaloPay. Minimum top-up 100,000₫. Electronic VAT invoice issued automatically.</p>
+      </div>
+
+      <div class="feat reveal-child">
+        <div class="ico"><svg><use href="#i-bolt"/></svg></div>
+        <span class="tag"><span class="accent">02</span> · <span data-vi>tương thích</span><span data-en>compatibility</span></span>
+        <h4 data-vi>Drop-in Anthropic SDK</h4>
+        <h4 data-en>Drop-in Anthropic SDK</h4>
+        <p data-vi>Chỉ thay đổi <code style="font-family:var(--font-mono); font-size:12px; background:var(--bg-3); padding:1px 5px; border-radius:3px; color:var(--accent);">base_url</code>. Toàn bộ SDK Python, TypeScript, Go, Ruby chính thức đều dùng được. Tools, vision, streaming, prompt caching — đầy đủ.</p>
+        <p data-en>Just swap <code style="font-family:var(--font-mono); font-size:12px; background:var(--bg-3); padding:1px 5px; border-radius:3px; color:var(--accent);">base_url</code>. Works with every official Anthropic SDK — Python, TS, Go, Ruby. Tools, vision, streaming, prompt cache — all forwarded.</p>
+      </div>
+
+      <div class="feat reveal-child">
+        <div class="ico"><svg><use href="#i-globe"/></svg></div>
+        <span class="tag"><span class="accent">03</span> · <span data-vi>hạ tầng</span><span data-en>infra</span></span>
+        <h4 data-vi>POP tại HCM &amp; HN</h4>
+        <h4 data-en>PoPs in HCMC &amp; Hanoi</h4>
+        <p data-vi>Edge proxy đặt tại HCM (FPT) và Hà Nội (Viettel). Độ trễ thêm < 50ms so với gọi thẳng api.anthropic.com — thường nhanh hơn vì ổn định route.</p>
+        <p data-en>Edge proxy in HCMC (FPT) and Hanoi (Viettel). Added latency under 50ms vs hitting api.anthropic.com direct — often faster thanks to stable routing.</p>
+      </div>
+
+      <div class="feat reveal-child">
+        <div class="ico"><svg><use href="#i-shield"/></svg></div>
+        <span class="tag"><span class="accent">04</span> · <span data-vi>bảo mật</span><span data-en>security</span></span>
+        <h4 data-vi>Không lưu prompt</h4>
+        <h4 data-en>Zero prompt retention</h4>
+        <p data-vi>Mặc định không log nội dung request &amp; response. Bật log có chọn lọc qua dashboard nếu cần debug. Audit trail không thể chỉnh sửa cho enterprise.</p>
+        <p data-en>Prompts and completions are never persisted by default. Enable selective logging from your dashboard. Immutable audit trail for enterprise.</p>
+      </div>
+
+      <div class="feat reveal-child">
+        <div class="ico"><svg><use href="#i-meter"/></svg></div>
+        <span class="tag"><span class="accent">05</span> · <span data-vi>dashboard</span><span data-en>dashboard</span></span>
+        <h4 data-vi>Theo dõi từng request</h4>
+        <h4 data-en>Per-request observability</h4>
+        <p data-vi>Usage theo model, theo API key, theo ngày. Giới hạn ngân sách. Cảnh báo Slack/email khi sắp hết tiền.</p>
+        <p data-en>Usage by model, key, day. Budget caps. Slack/email alerts on burn.</p>
+      </div>
+
+      <div class="feat reveal-child">
+        <div class="ico"><svg><use href="#i-chat"/></svg></div>
+        <span class="tag"><span class="accent">06</span> · <span data-vi>hỗ trợ</span><span data-en>support</span></span>
+        <h4 data-vi>Hỗ trợ tiếng Việt 24/7</h4>
+        <h4 data-en>Vietnamese support, 24/7</h4>
+        <p data-vi>Zalo, email, hoặc trực tiếp trong dashboard. SLA 15 phút phản hồi cho lỗi production. Hỗ trợ tiếng Việt, hiểu ngữ cảnh từ prompt engineering tới triển khai production.</p>
+        <p data-en>Zalo, email, or in-dashboard chat. 15-minute response SLA on production incidents. Vietnamese support — fluent in prompt engineering and production deployments.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═════ QUICKSTART ═════ -->
+<section class="section reveal" id="quickstart" style="padding-top: 40px;">
+  <div class="container">
+    <div class="qs-grid">
+      <div class="qs-text">
+        <span class="eyebrow"><span class="accent">/</span> <span data-vi>bắt đầu trong 3 phút</span><span data-en>3-minute quickstart</span></span>
+        <h3 style="margin-top: 14px" data-vi>Sao chép. Đổi base URL. Chạy.</h3>
+        <h3 style="margin-top: 14px" data-en>Copy. Swap base URL. Ship.</h3>
+        <p data-vi>Không có SDK riêng. Không lock-in. Code Anthropic của bạn vẫn chạy y nguyên, chỉ trỏ tới <code style="font-family:var(--font-mono); font-size:12.5px; background:var(--bg-3); padding:1px 5px; border-radius:3px; color:var(--accent);">api.example.com/v1</code>.</p>
+        <p data-en>No custom SDK. No lock-in. Your existing Anthropic code just runs — pointed at <code style="font-family:var(--font-mono); font-size:12.5px; background:var(--bg-3); padding:1px 5px; border-radius:3px; color:var(--accent);">api.example.com/v1</code>.</p>
+
+        <div class="qs-steps">
+          <div class="qs-step">
+            <div class="num">1</div>
+            <div class="body">
+              <div class="ttl" data-vi>Đăng ký, nhận $5 tín dụng</div>
+              <div class="ttl" data-en>Sign up, get $5 credit</div>
+              <div class="sub" data-vi>Chỉ cần email &amp; số điện thoại. Đủ chạy ~ 50k token Sonnet.</div>
+              <div class="sub" data-en>Email + phone is all we need. Enough for ~ 50k Sonnet tokens.</div>
+            </div>
+          </div>
+          <div class="qs-step">
+            <div class="num">2</div>
+            <div class="body">
+              <div class="ttl" data-vi>Tạo API key trong dashboard</div>
+              <div class="ttl" data-en>Create an API key from the dashboard</div>
+              <div class="sub" data-vi>Format <code>fc_live_xxx</code> · phạm vi theo model · revoke bất kỳ lúc nào.</div>
+              <div class="sub" data-en>Format <code>fc_live_xxx</code> · scope by model · revoke anytime.</div>
+            </div>
+          </div>
+          <div class="qs-step">
+            <div class="num">3</div>
+            <div class="body">
+              <div class="ttl" data-vi>Đổi <code>base_url</code>, gọi như Anthropic</div>
+              <div class="ttl" data-en>Set <code>base_url</code>, call as you would Anthropic</div>
+              <div class="sub" data-vi>Hết. Bạn không cần học gì mới.</div>
+              <div class="sub" data-en>That's it. Nothing new to learn.</div>
+            </div>
+          </div>
+        </div>
+
+        <a href="/my" class="btn btn-primary">
+          <span data-vi>Tạo key đầu tiên</span><span data-en>Create your first key</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+
+      <div class="qs-code-card">
+        <div class="tabs">
+          <button class="tab active">Python</button>
+          <button class="tab">TypeScript</button>
+          <button class="tab">cURL</button>
+          <span class="tab-right">
+            <button class="qs-copy"><span data-vi>⧉ Sao chép</span><span data-en>⧉ Copy</span></button>
+          </span>
+        </div>
+        <div class="pcode typewriter" id="qs-code" style="background: var(--bg-2);">
+          <div class="ln"><span class="gut">1</span><span class="body"><span class="tok-com"># pip install anthropic</span></span></div>
+          <div class="ln"><span class="gut">2</span><span class="body"><span class="tok-kw">from</span> anthropic <span class="tok-kw">import</span> Anthropic</span></div>
+          <div class="ln"><span class="gut">3</span><span class="body"></span></div>
+          <div class="ln"><span class="gut">4</span><span class="body">client = <span class="tok-fn">Anthropic</span>(</span></div>
+          <div class="ln"><span class="gut">5</span><span class="body">    base_url=<span class="tok-str">"https://api.example.com/v1"</span>,</span></div>
+          <div class="ln"><span class="gut">6</span><span class="body">    api_key=<span class="tok-var">"fc_live_3a91…f4a2"</span>,</span></div>
+          <div class="ln"><span class="gut">7</span><span class="body">)</span></div>
+          <div class="ln"><span class="gut">8</span><span class="body"></span></div>
+          <div class="ln"><span class="gut">9</span><span class="body">response = client.messages.<span class="tok-fn">create</span>(</span></div>
+          <div class="ln"><span class="gut">10</span><span class="body">    model=<span class="tok-str">"sonnet-4-6"</span>,</span></div>
+          <div class="ln"><span class="gut">11</span><span class="body">    max_tokens=<span class="tok-num">1024</span>,</span></div>
+          <div class="ln"><span class="gut">12</span><span class="body">    system=<span class="tok-str">"Bạn là trợ lý kế toán."</span>,</span></div>
+          <div class="ln"><span class="gut">13</span><span class="body">    messages=[</span></div>
+          <div class="ln"><span class="gut">14</span><span class="body">        {<span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>,</span></div>
+          <div class="ln"><span class="gut">15</span><span class="body">         <span class="tok-str">"content"</span>: <span class="tok-str">"Phân loại 50 hoá đơn này…"</span>},</span></div>
+          <div class="ln"><span class="gut">16</span><span class="body">    ],</span></div>
+          <div class="ln"><span class="gut">17</span><span class="body">)</span></div>
+          <div class="ln"><span class="gut">18</span><span class="body"></span></div>
+          <div class="ln"><span class="gut">19</span><span class="body"><span class="tok-fn">print</span>(response.content[<span class="tok-num">0</span>].text)</span></div>
+        </div>
+        <div class="pfoot">
+          <span class="resp-chip"><span class="d"></span> python · 3.11</span>
+          <span class="spacer"></span>
+          <span class="right" data-vi>$ python quickstart.py</span>
+          <span class="right" data-en>$ python quickstart.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════ CTA STRIP ═════ -->
+<section class="container">
+  <div class="cta">
+    <div>
+      <h2 data-vi>Sẵn sàng cho prompt đầu tiên?</h2>
+      <h2 data-en>Ready for your first prompt?</h2>
+      <p data-vi>Đăng ký mất 30 giây, nhận $5 dùng thử ngay. Không cần thẻ tín dụng. Hỗ trợ tiếng Việt trong Zalo.</p>
+      <p data-en>Sign up in 30 seconds, get $5 in credit. No card required. Vietnamese support on Zalo.</p>
+    </div>
+    <div class="actions">
+      <a href="/my" class="btn btn-primary btn-lg">
+        <span data-vi>Bắt đầu miễn phí</span><span data-en>Start for free</span>
+        <span class="arrow">→</span>
+      </a>
+      <a href="#" class="btn btn-secondary btn-lg">
+        <span data-vi>Liên hệ kinh doanh</span><span data-en>Talk to sales</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════ FOOTER ═════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="foot-bottom">
+      <span data-vi>© 2026 MemorIAI · HCM, Việt Nam</span>
+      <span data-en>© 2026 MemorIAI · HCMC, Vietnam</span>
+      <div class="links">
+        <a href="/docs" data-vi>Tài liệu</a><a href="/docs" data-en>Docs</a>
+        <a href="/my">Dashboard</a>
+        <a href="#" target="_blank" rel="noopener noreferrer">Zalo</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═════ FLOAT CONTROLS · Lang + Theme + Scroll Top ═════ -->
+<div class="float-controls">
+  <button class="ctrl-pill" id="scrollTopBtn" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+  <button class="ctrl-pill" id="langBtn">
+    <span data-vi>VI</span><span data-en>EN</span>
+    <span style="opacity:0.5">/</span>
+    <span data-vi>EN</span><span data-en>VI</span>
+  </button>
+  <button class="ctrl-pill" id="themeBtn">
+    <span class="dot"></span>
+    <span data-vi>Sáng</span><span data-en>Light</span>
+    <span style="opacity:0.5">/</span>
+    <span data-vi>Tối</span><span data-en>Dark</span>
+  </button>
+</div>
+
+<script>
+  // ── Edit-mode tweak defaults (persisted on disk) ──
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "theme": "dark",
+    "lang": "vi"
+  }/*EDITMODE-END*/;
+
+  // bootstrap from defaults
+  const html = document.documentElement;
+  html.setAttribute('data-theme', TWEAK_DEFAULTS.theme);
+  html.setAttribute('data-lang', TWEAK_DEFAULTS.lang);
+  html.setAttribute('lang', TWEAK_DEFAULTS.lang);
+
+  function setTheme(t) {
+    html.setAttribute('data-theme', t);
+    try { window.parent.postMessage({type:'__edit_mode_set_keys', edits:{theme:t}}, '*'); } catch(e){}
+  }
+  function setLang(l) {
+    html.setAttribute('data-lang', l);
+    html.setAttribute('lang', l);
+    try { window.parent.postMessage({type:'__edit_mode_set_keys', edits:{lang:l}}, '*'); } catch(e){}
+  }
+
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+  document.getElementById('langBtn').addEventListener('click', () => {
+    setLang(html.getAttribute('data-lang') === 'vi' ? 'en' : 'vi');
+  });
+
+  // pricing currency toggle (USD/VND) — VI segment
+  document.querySelectorAll('.pricing-bar .seg button').forEach(b => {
+    b.addEventListener('click', e => {
+      const isVI = b.hasAttribute('data-vi');
+      const peers = b.parentElement.querySelectorAll(isVI ? '[data-vi]' : '[data-en]');
+      peers.forEach(p => p.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  // ── Scroll to top button ──
+  const scrollTopBtn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', () => {
+    scrollTopBtn.style.display = window.scrollY > 400 ? 'flex' : 'none';
+  }, { passive: true });
+
+  // ── Hamburger nav toggle ──
+  document.getElementById('navHamburger').addEventListener('click', () => {
+    const links = document.querySelector('.nav-links');
+    links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+    links.style.position = 'absolute';
+    links.style.top = '64px';
+    links.style.left = '0';
+    links.style.right = '0';
+    links.style.background = 'var(--bg)';
+    links.style.flexDirection = 'column';
+    links.style.padding = '16px';
+    links.style.borderBottom = '1px solid var(--rule)';
+    links.style.gap = '12px';
+    links.style.zIndex = '100';
+  });
+
+  // ── Scroll Reveal (IntersectionObserver) ──
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.transitionDelay = '0ms';
+        entry.target.classList.add('visible');
+        // stagger children
+        entry.target.querySelectorAll('.reveal-child').forEach((ch, ci) => {
+          ch.style.transitionDelay = (ci * 80) + 'ms';
+        });
+        revealObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => revealObs.observe(el));
+
+  // ── Typing Effect ──
+  function typeBlock(block, delay) {
+    if (!block || block.classList.contains('typed')) return;
+    const lines = block.querySelectorAll('.ln .body');
+    const contents = [];
+    lines.forEach(ln => {
+      contents.push(ln.innerHTML);
+      ln.innerHTML = '';
+    });
+    block.classList.add('typing');
+
+    let lineIdx = 0, charIdx = 0;
+    const cursor = document.createElement('span');
+    cursor.className = 'type-cursor';
+
+    function typeNext() {
+      if (lineIdx >= lines.length) {
+        cursor.remove();
+        block.classList.remove('typing');
+        block.classList.add('typed');
+        // restore full content
+        lines.forEach((ln, i) => { ln.innerHTML = contents[i]; });
+        return;
+      }
+      const full = contents[lineIdx];
+      const plain = full.replace(/<[^>]+>/g, '');
+      if (charIdx >= plain.length) {
+        lines[lineIdx].innerHTML = full;
+        cursor.remove();
+        lineIdx++;
+        charIdx = 0;
+        setTimeout(typeNext, 40);
+        return;
+      }
+      // show partial text (plain chars only for visual, full HTML at end of line)
+      lines[lineIdx].textContent = plain.slice(0, charIdx + 1);
+      lines[lineIdx].appendChild(cursor);
+      charIdx++;
+      setTimeout(typeNext, delay);
+    }
+    typeNext();
+  }
+
+  // Hero code: type on load
+  setTimeout(() => typeBlock(document.getElementById('hero-code'), 22), 600);
+
+  // Quickstart code: type on scroll into view
+  const qsBlock = document.getElementById('qs-code');
+  if (qsBlock) {
+    const qsObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        typeBlock(qsBlock, 22);
+        qsObs.disconnect();
+      }
+    }, { threshold: 0.3 });
+    qsObs.observe(qsBlock);
+  }
+
+  // ── Anti-DevTools & Bot Protection ──
+  // Disable right-click
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Disable F12, Ctrl+Shift+I/J/C, Ctrl+U
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.key.toUpperCase() === 'U') { e.preventDefault(); return false; }
+  });
+
+  // Detect devtools open via debugger timing
+  (function antiDebug() {
+    const threshold = 160;
+    setInterval(() => {
+      const t0 = performance.now();
+      debugger;
+      if (performance.now() - t0 > threshold) {
+        document.body.innerHTML = '';
+      }
+    }, 4000);
+  })();
+
+  // Block common bot user-agents
+  (function blockBots() {
+    const ua = navigator.userAgent.toLowerCase();
+    const bots = ['bot','crawl','spider','scrape','headless','phantom','selenium','puppeteer','playwright'];
+    if (bots.some(b => ua.includes(b))) {
+      document.body.innerHTML = '<p style="padding:40px;font-family:monospace;">Access denied.</p>';
+    }
+  })();
+
+  // Live exchange rate
+  (function loadRate() {
+    fetch('/api/settings/rate').then(r => r.ok ? r.json() : null).then(d => {
+      const r = Number(d && d.vndPerUsd);
+      if (!r || !isFinite(r) || r <= 0) return;
+      const vi = document.getElementById('rateVi');
+      const en = document.getElementById('rateEn');
+      if (vi) vi.textContent = r.toLocaleString('vi-VN');
+      if (en) en.textContent = r.toLocaleString('en-US');
+    }).catch(() => {});
+  })();
+
+  // Live model pricing — keep landing cards in sync with admin-edited prices.
+  (function loadModelPricing() {
+    fetch('/api/models').then(r => r.ok ? r.json() : null).then(d => {
+      if (!d || !Array.isArray(d.models)) return;
+      const byId = {};
+      for (const m of d.models) byId[m.id] = m;
+      const fmt = (n) => {
+        const v = Number(n);
+        if (!isFinite(v)) return '—';
+        return '$' + (v < 1 ? v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'') : v.toFixed(2));
+      };
+      document.querySelectorAll('.price[data-model-id]').forEach(card => {
+        const m = byId[card.getAttribute('data-model-id')];
+        if (!m) return;
+        const setVal = (key, value) => {
+          const el = card.querySelector('[data-price="' + key + '"]');
+          if (el) el.textContent = fmt(value);
+        };
+        setVal('input', m.inputPrice);
+        setVal('output', m.outputPrice);
+        setVal('cacheRead', m.cacheReadPrice);
+        setVal('cacheWrite', m.cacheWritePrice);
+      });
+    }).catch(() => {});
+  })();
+</script>
+
+</body>
+</html>
